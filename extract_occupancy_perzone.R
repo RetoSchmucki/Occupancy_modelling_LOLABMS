@@ -35,7 +35,7 @@ for (species1 in sp_list) {
     if (sum(quant_y) == 0 | sum(!is.na(quant_y)) == 0) {
       est_df <- rbind(est_df, data.frame(species = species1, z = z, mean_est = 0, lci = 0, uci = 0))
     } else {
-      est_dist <- round(quantile(apply(quant_y, 2, function(x) lm(1:12 ~ x - 1)$coefficients), c(0.025, 0.5, 0.975)), 4)
+      est_dist <- round(quantile(apply(quant_y, 2, function(x) lm(x ~ c(1:12) - 1)$coefficients), c(0.025, 0.5, 0.975)), 4)
       est_df <- rbind(est_df, data.frame(species = species1, z = z, mean_est = est_dist[2], lci = est_dist[1], uci = est_dist[3]))
     }
   }  # zone
@@ -52,9 +52,9 @@ par(mfrow = c(5, 1))
 for (z in 4:1) {
   
   if (z == 1) {
-    par(mar = c(2, 2, 2, 0))
+    par(mar = c(2, 2, 1, 0))
   } else {
-    par(mar = c(2, 2, 2, 0))
+    par(mar = c(2, 2, 1, 0))
   }
   
   plot(1:length(est_df$mean[est_df$z == z]),est_df$mean[est_df$z == z], ylim = c(min(est_df$lci[est_df$z == z]), max(est_df$uci[est_df$z == z])), 
