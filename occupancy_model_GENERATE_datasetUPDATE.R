@@ -31,8 +31,7 @@ uid_pwd <- read.csv("/home/reto/Dropbox/LOLA_BMS/lola_connection.csv",stringsAsF
 uid_pwd <- read.csv("/User/retoschmucki/Dropbox/LOLA_BMS/lola_connection.csv",stringsAsFactors = F,header=F) 
 }
 
- # on my MAC
-
+ch.lola <- odbcConnect("LOLAdb", uid=uid_pwd[1,2], pwd=uid_pwd[2,2],case="postgresql") 
 
 # LOCATE flight curve file
 if (Sys.info()[['nodename']] == 'reto-Precision-T1650') {
