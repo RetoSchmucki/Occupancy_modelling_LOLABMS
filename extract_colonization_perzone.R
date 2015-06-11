@@ -17,8 +17,9 @@ beta_phi <- data.frame()
   load(paste("/home/reto/Documents/LOLA_BMS/Occupancy Model project/Occupancy_modellingNEW/ResultOCC/temporal_trend_gam_phi_estimates/countries_",voltinisme,"_2000_sd_67/", 
              species1, "/results/jagsoutput.Rdata", sep = ""))
   
-  
-round(quantile(apply(out$BUGSoutput$sims.list$beta.gam1, 1, function(x) lm(x ~ c(1:12) - 1)$coefficients),c(0.025, 0.5, 0.975)), 4)
+for (z in 1:4) { 
+   
+round(quantile(apply(out$BUGSoutput$sims.list[[paste0("beta.gam",z)]], 1, function(x) lm(x ~ c(1:12) - 1)$coefficients),c(0.025, 0.5, 0.975)), 4)
 
   
 data1 <- (cbind(1:12,c(t(out$BUGSoutput$sims.list$beta.gam1))))
