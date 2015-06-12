@@ -72,14 +72,14 @@ min_nbr_year <- 3
 GRIDsize <- 100000
 nbr_siteperGRID <- 30
 
-slice_sd <- 1 #core slice extend mesured in Tidev SD 
+slice_sd <- 0.67 #core slice extend mesured in Tidev SD 
 
 year_toget <- noquote(c(paste(as.character(c(start.year:end.year)),collapse=",")))
 
 if (start.year==2000) country <- noquote(c("\'ES\',\'UK\',\'NL\',\'FI\'"))
 if (start.year==2006) country <- noquote(c("\'ES\',\'FR\',\'UK\',\'NL\',\'DE\',\'FI\'"))
 
-folder <- paste("countries",voltinism,start.year,"sd",1,sep="_")
+folder <- paste("countries",voltinism,start.year,"sd",gsub("0.","",slice_sd),sep="_")
 
 source("/home/reto/Dropbox/LOLA_BMS/Occupancy Modelling Project/R-Scripts/Occupancy_modelling_LOLABMS/OCC_model_dataGENERATION_functionUPDATE.R")
 
