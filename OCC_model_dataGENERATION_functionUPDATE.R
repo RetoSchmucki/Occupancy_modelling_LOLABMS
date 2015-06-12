@@ -21,7 +21,8 @@ WHERE
 substring(all_species_count_visit.transect_id from 1 for 2) IN (",country,") AND
 visit_year in (",year_toget,") AND
 all_bms_transects_coord.altitude < 3000 AND
-all_species_count_visit.monitoring_type = 1
+all_species_count_visit.monitoring_type = 1 AND
+confidence_level = 1
 ORDER BY
 transect_id,
 visit_year,
@@ -67,7 +68,8 @@ bms_update.all_species_count_visit
 WHERE
 substring(all_species_count_visit.transect_id from 1 for 2) IN (",country,") AND
 fauna_europea_species = \'",as.name(species),"\' AND
-visit_year in (",year_toget,")
+visit_year in (",year_toget,") AND
+confidence_level = 1
 ORDER BY
 all_species_count_visit.transect_id",sep='')
 
@@ -175,7 +177,8 @@ get.species_count <- function(ch.sql,country,species,year_toget){
 		WHERE
 		substring(all_species_count_visit.transect_id from 1 for 2) IN (",country,") AND
 		fauna_europea_species = \'",as.name(species),"\' AND
-		visit_year in (",year_toget,")
+		visit_year in (",year_toget,") AND
+    confidence_level = 1
 		ORDER BY
 		all_species_count_visit.transect_id,
 		visit_year,
