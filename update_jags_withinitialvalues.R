@@ -1,6 +1,5 @@
 # setwd("/home/reto/Documents/LOLA_BMS/Occupancy Model project/Occupancy_modellingNEWJUNE/Anthocharis_cardamines")
 library(R2jags)
-setwd("~/Desktop/Anthocharis_cardamines")
 load(list.files()[grep(".RData",list.files())])
 load("results/jagsoutput.Rdata")
 
@@ -27,7 +26,7 @@ zst[zst==(-Inf)] <- 1 			# inits for -infinite: 1
 zst[zst==(Inf)]  <- 1			# inits for infinite : 1
 pst <- rep(0.5, nyear) 
 
-initsN <- function() {list (z=zst, 
+inits2 <- function() {list (z=zst, 
 alpha.p=apply(out$BUGSoutput$sims.list$alpha.p,2,function(x) rnorm(1,mean(x),sd(x))),
 muphi1=apply(out$BUGSoutput$sims.list$muphi1,2,function(x) rnorm(1,mean(x),sd(x))),
 muphi2=apply(out$BUGSoutput$sims.list$muphi2,2,function(x) rnorm(1,mean(x),sd(x))),
@@ -216,4 +215,4 @@ environment(jags_fit) <- environment(jags)
 
 set.seed(1234)
 
-out2 <- jags_fit(data, initsN, parameters, jags_model, n.chains=nch, n.iter = ni, n.thin=nt, n.burnin=nb, DIC=TRUE, working.directory=NULL)
+out2 <- jags_fit(data, inits2, parameters, jags_model, n.chains=nch, n.iter = ni, n.thin=nt, n.burnin=nb, DIC=TRUE, working.directory=NULL)
