@@ -14,12 +14,12 @@
 #***************************************
 
 # UNIVOLTINE
-# species_list <- c('Anthocharis cardamines','Apatura iris','Aphantopus hyperantus',"Araschnia levana",'Argynnis aglaja','Argynnis paphia','Callophrys rubi','Carterocephalus palaemon','Favonius quercus','Gonepteryx rhamni','Hipparchia semele','Maniola jurtina','Nymphalis polychloros','Thymelicus lineola','Coenonympha tullia','Hesperia comma','Polyommatus coridon','Pyronia tithonus','Thymelicus sylvestris')
-# voltinism <- "UNI"
+ species_list <- c('Anthocharis cardamines','Apatura iris','Aphantopus hyperantus',"Araschnia levana",'Argynnis aglaja','Argynnis paphia','Callophrys rubi','Carterocephalus palaemon','Favonius quercus','Gonepteryx rhamni','Hipparchia semele','Maniola jurtina','Nymphalis polychloros','Thymelicus lineola','Coenonympha tullia','Hesperia comma','Polyommatus coridon','Pyronia tithonus','Thymelicus sylvestris')
+ voltinism <- "UNI"
 
 # MULTIVOLTINE
- species_list <- c('Aglais io','Aglais urticae','Boloria selene','Celastrina argiolus','Colias crocea','Limenitis camilla','Lycaena phlaeas','Ochlodes sylvanus','Papilio machaon','Pararge aegeria','Pieris napi','Pieris rapae','Plebejus argus','Polygonia c-album','Polyommatus icarus')
- voltinism <- "MULTI"
+# species_list <- c('Aglais io','Aglais urticae','Boloria selene','Celastrina argiolus','Colias crocea','Limenitis camilla','Lycaena phlaeas','Ochlodes sylvanus','Papilio machaon','Pararge aegeria','Pieris napi','Pieris rapae','Plebejus argus','Polygonia c-album','Polyommatus icarus')
+# voltinism <- "MULTI"
 
 library(RODBC)
 library(rgdal)
@@ -65,7 +65,7 @@ jags_model <- paste("OCCmodel_",modelnbr,"_jagscript_tidev_zone.txt",sep="")
 
 country_of_flight <- noquote(c("\'ES\',\'FR\',\'UK\',\'NL\',\'DE\',\'FI\'")) # LINE 240
 
-start.year <- 2000
+start.year <- 2006
 end.year <- 2014
 min_nbr_year <- 3
 
@@ -469,20 +469,13 @@ jobnamezonecoord <-  paste(jobname, "coord_zone.csv", sep="")   		# simulations 
 # Define the MODEL WITHOUT COVARIATE
 #####################################
 
-#if(start.year == 2006){
-#	if(Sys.info()[["nodename"]] =='reto-Precision-T1650'){
-#	source('/home/reto/Dropbox/LOLA_BMS/Occupancy Modelling Project/R-Scripts/OCC_model_jagscript_tidev_zoneMEAN.r')
-#	} else {
-#	source("/Users/retoschmucki/Dropbox/LOLA_BMS/Occupancy Modelling Project/R-Scripts/OCC_model_jagscript_tidev_zoneMEAN.r")
-#	}
+if(start.year == 2006){
 
-#} else {
-#	if(Sys.info()[["nodename"]] =='reto-Precision-T1650'){
+source('/home/reto/Dropbox/LOLA_BMS/Occupancy Modelling Project/R-Scripts/Occupancy_modelling_LOLABMS/randomPhiGam_OCCmodelNOTIMEEFFECT.R')
+} else {
 	source('/home/reto/Dropbox/LOLA_BMS/Occupancy Modelling Project/R-Scripts/Occupancy_modelling_LOLABMS/randomPhiGam_OCCmodel.R')
-#	} else {
-#	source("/Users/retoschmucki/Dropbox/LOLA_BMS/Occupancy Modelling Project/R-Scripts/Occupancy_modelling_LOLABMS/randomPhiGam_OCCmodel.R")
-#	}
-#}
+}
+
 # Read priors and iteration settings 
 psi_min	     <- 0
 psi_max	     <- 1
