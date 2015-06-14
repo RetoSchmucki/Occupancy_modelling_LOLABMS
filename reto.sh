@@ -9,4 +9,5 @@ cat *.R | R --slave --args $1
 
 mkdir $lieu1/results
 mv jagsoutput.Rdata $lieu1/results
+mv jagsoutput2.Rdata $lieu1/results
 mv *.csv $lieu1/results

@@ -424,7 +424,7 @@ jags_fit <- function (data, inits, parameters.to.save, model.file = "model.bug",
   
   write.csv(out2$BUGSoutput$summary, file = jobnameout)
   write.csv(analysis.par, file = paste(modelnbr,"AnalysisParameters.csv",sep="_"), row.names=F)
-  save(out2,file="results/jagsoutput2.Rdata")
+  save(out2,file="jagsoutput2.Rdata")
   print(gc())
 }
 
