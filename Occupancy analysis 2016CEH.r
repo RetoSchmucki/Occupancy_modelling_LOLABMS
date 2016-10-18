@@ -29,8 +29,12 @@ for (y in as.character(unique(monthly_mean$year_month$year))){
 	A <- spring_summer_values[,,as.character(monthly_mean$year_month$year)[spring_summer_months]==y]
 	yearly_spring_summer_meanT[,,dim3] <- apply(A,c(1,2),mean)
 }
+## on MAC /Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/Audusseau_et_al_revised0303 (002)Reto_edit.docx
 
+coord_zone <- read.csv("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jags_model_1_Araschnia_levana_ES_FR_UK_NL_DE_FIcoord_zone.csv")
+## on PC
 coord_zone <- read.csv("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jags_model_1_Anthocharis_cardamines_ES_FR_UK_NL_DE_FIcoord_zone.csv ")
+
 coord_zone.sp <- coord_zone
 coordinates(coord_zone.sp) <- ~longitude + latitude
 proj4string(coord_zone.sp) <- CRS("+init=epsg:3035")
@@ -59,9 +63,18 @@ names(site_coord.spring_summerT) <- c(names(coord_zone),paste0("y_",as.character
 ## produce a map
 ## set your working directory to containing the physical and cultural folders
 
+## on MAC
+working_d <- "/Users/retoschmucki/Documents/GIS layers/natural_earth_vector"
+setwd(file.path(working_d,"50m_physical"))
+ocean <- readOGR(".","ne_50m_ocean")
+setwd("/Users/retoschmucki/Documents/GIS layers/natural_earth_vector/50m_physical/ne_50m_graticules_all/")
+graticule <- readOGR(".","ne_50m_graticules_10")
+setwd(file.path(working_d,"50m_cultural/"))
+country <- readOGR(".","ne_50m_admin_0_boundary_lines_land")
+country_p <- readOGR(".","ne_50m_admin_0_sovereignty")
+
+## on PC
 working_d <- "C:/Users/Public/Documents/gis_data"
-
-
 setwd(file.path(working_d,"physical_vector_layers/ne_50m_physical/"))
 ocean <- readOGR(".","ne_50m_ocean")
 graticule <- readOGR(".","ne_50m_graticules_10")
@@ -96,43 +109,39 @@ col_ramp <- colorRampPalette(c("blue","lightsteelblue3", "yellow", "orange", "re
 	coordinates(site_coord.spring_summerT) <- ~ longitude+latitude
 	proj4string(site_coord.spring_summerT) = CRS(laea.proj)
 
-var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=sum)
-
-
-
+## var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=sum)
 ## probability of at least one observation per 20 trials 
-var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=function (x,na.rm = TRUE) {v <- rep(mean(x),20); v[1:length(x)]<- x; 1-prod(1-v)})
+#var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=function (x,na.rm = TRUE) {v <- rep(mean(x),20); v[1:length(x)]<- x; 1-prod(1-v)})
 
-##var_raster <- rasterize(site_coord.spring_summerT, full_r,site_coord.spring_summerT$y_2009, fun=mean)
-range(var_raster)
-image(var_raster,axes=F,col=col_ramp,zlim=c(0,1))
+## Temperature
+var_raster <- rasterize(site_coord.spring_summerT, full_r,site_coord.spring_summerT$y_2009, fun=mean)
+
+image(var_raster,axes=T,col=col_ramp,zlim=c(0,25))
 plot(country_p_c[country_p_c@data$sovereignt%in% c("Italy","Switzerland","Belgium","Luxembourg","Russia","Denmark","Austria","Poland","Czech Republic","Estonia","Ireland"),],col="white",border=NA,add=T)
 plot(country_c,lwd=0.3,add=T)
 polygon(c(5352923,5352923,5809489,5809489,5352923),c(2024942,3548678,3548678,2024942,2024942),col="white",border=NA)
 plot(ocean_c,col="lightsteelblue1",add=T)
 plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
 ## add a legend for the color gradient
-plot(var_raster, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,1),axis.args=list(cex.axis=1,tck=-0.5))
+plot(var_raster, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,25),axis.args=list(cex.axis=1,tck=-0.5))
 
+species_name <- "Anthocharis_cardamines"
+## on MAC
+load(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jagsoutput2.Rdata"))
 
+## on PC
+load(paste0("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jagsoutput2.Rdata"))
 
-load("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jagsoutput2.Rdata")
 mean_occ_p <- apply(out2$BUGSoutput$sims.list$z,c(2,3),mean)
 
-prob_at_least_one.in_many <- function (x,trial=10, na.rm = TRUE) {v <- rep(mean(x),trial); v[1:length(x)]<- x; 1-prod(1-v)}
+prob_at_least_one.in_many <- function (x,trial=20, na.rm = TRUE) {v <- rep(mean(x),trial); v[1:length(x)]<- x; 1-prod(1-v)}
 prob_from_one <- function(x,...) {set.seed(seedset);sample(x,1,replace=TRUE)}
 
-x <- sample(1:100,10)
+## PER YEAR
+nbr_it <- 10000
+shift.array <- array(data=NA, dim=c(2,3,nbr_it))
 
-for (i in 1:5){
-	set.seed(123)
-		for (j in 1:5){
-		print(sample(x,1,replace=TRUE))
-		}
-}
-
-
-## year2
+for (z in 1:nbr_it){
 
 density.curves <- list()
 y.range <- data.frame()
@@ -157,10 +166,28 @@ y.range <- rbind(y.range,range(d$y))
 x.range <- rbind(x.range,range(d$x))
 density.curves[[y]] <- d
 
-quantile.value <-  rbind(quantile.value,as.numeric(quantile(rep(as.numeric(as.character(merged.northing$id)),merged.northing$stdr_effort),c(0.05,0.5,0.95))))
+quantile.value <-  rbind(quantile.value,as.numeric(quantile(rep(as.numeric(as.character(merged.northing$id)),merged.northing$stdr_effort),c(0.1,0.5,0.90))))
 
 }
 
+quantile.value$Year <- 1:dim(quantile.value)[1]
+names(quantile.value) <- c("p25","p50","p75","Year")
+shift.array[,,z] <- matrix(c(as.numeric(coefficients( glm(p25~Year, data = quantile.value))),as.numeric(coefficients( glm(p50~Year, data = quantile.value))),as.numeric(coefficients( glm(p75~Year, data = quantile.value)))),nrow=2,ncol=3)
+
+}
+
+d10 <- density(shift.array[2,1,])
+d50 <- density(shift.array[2,2,])
+d90 <- density(shift.array[2,3,])
+
+par(mfrow=c(3,1))
+plot(d10,col='red',main="d10")
+plot(d50,col='blue',main="d50")
+plot(d90,col='green',main="d90")
+
+
+
+dev.new()
 col_ramp <- colorRampPalette(c("blue","green", "magenta"))(9)
 plot(density.curves[[2]],xlim=range(x.range),ylim=range(y.range),col=col_ramp[1],lwd=2)
 
@@ -170,7 +197,12 @@ lines(density.curves[[i]],col=col_ramp[i],lwd=2)
 Sys.sleep(2)
 }
 
-quantile(rep(as.numeric(as.character(merged.northing$id)),merged.northing$stdr_effort),c(0.05,0.5,0.95))
+dev.new()
+plot(c(2007:2014),quantile.value[,1])
+plot(c(2007:2014),quantile.value[,2],col='red')
+plot(c(2007:2014),quantile.value[,"p75"],col='red')
+
+
 
 
 
