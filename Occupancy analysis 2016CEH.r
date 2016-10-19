@@ -4,6 +4,12 @@
 ## Author Reto Schmucki
 ## =================================
 
+## by having more event, I am increasing my "certainty" about the outcome and the probability of at least 1 positive event happening that the grid size I present my results.
+## similarly, if I have 1 site with very high prob, versus 3 sites with lower, my chance will not increase, but similarly.
+## my 3 sites might also have very different sampling quality and thereby one of them might be very little information compare to 1 single site thoroughly sampled elsewhere.
+
+
+
 R
 rm(list=ls())
 
@@ -29,11 +35,16 @@ for (y in as.character(unique(monthly_mean$year_month$year))){
 	A <- spring_summer_values[,,as.character(monthly_mean$year_month$year)[spring_summer_months]==y]
 	yearly_spring_summer_meanT[,,dim3] <- apply(A,c(1,2),mean)
 }
-## on MAC /Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/Audusseau_et_al_revised0303 (002)Reto_edit.docx
 
-coord_zone <- read.csv("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jags_model_1_Araschnia_levana_ES_FR_UK_NL_DE_FIcoord_zone.csv")
+species_name <- "Anthocharis_cardamines"
+
+## on MAC /Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/Audusseau_et_al_revised0303 (002)Reto_edit.docx
+coord_zone <- read.csv(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIcoord_zone.csv"))
+occ_summary <- read.csv(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIoutdaytrimmed.csv"))
+
 ## on PC
-coord_zone <- read.csv("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jags_model_1_Anthocharis_cardamines_ES_FR_UK_NL_DE_FIcoord_zone.csv ")
+coord_zone <- read.csv(paste0("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIcoord_zone.csv"))
+occ_summary <- read.csv(paste0("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIoutdaytrimmed.csv"))
 
 coord_zone.sp <- coord_zone
 coordinates(coord_zone.sp) <- ~longitude + latitude
@@ -82,8 +93,6 @@ setwd(file.path(working_d,"cultural_vector_layers/ne_50m_cultural/"))
 country <- readOGR(".","ne_50m_admin_0_boundary_lines_land")
 country_p <- readOGR(".","ne_50m_admin_0_sovereignty")
 
-
-
 ## Crop around European BMS sampling points
 
 CP<-as(extent(-30,50,15,90), "SpatialPolygons")
@@ -111,7 +120,7 @@ col_ramp <- colorRampPalette(c("blue","lightsteelblue3", "yellow", "orange", "re
 
 ## var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=sum)
 ## probability of at least one observation per 20 trials 
-#var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=function (x,na.rm = TRUE) {v <- rep(mean(x),20); v[1:length(x)]<- x; 1-prod(1-v)})
+## var_raster <- rasterize(site_coord.spring_summerT, full_r,1, fun=function (x,na.rm = TRUE) {v <- rep(mean(x),20); v[1:length(x)]<- x; 1-prod(1-v)})
 
 ## Temperature
 var_raster <- rasterize(site_coord.spring_summerT, full_r,site_coord.spring_summerT$y_2009, fun=mean)
@@ -125,15 +134,76 @@ plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
 ## add a legend for the color gradient
 plot(var_raster, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,25),axis.args=list(cex.axis=1,tck=-0.5))
 
+<<<<<<< HEAD
 species_name <- "Anthocharis_cardamines"
 species_name <- "Apatura_iris"
+=======
+
+########################################
+## Estimating distribution of occupancy
+########################################
+
+## set the OCC prob per site/year
+occ_value <- occ_summary[substr(occ_summary$X,1,2)=="z[",]
+
+occ_coord <- data.frame()
+for (y in 1:9){
+	y1 <-cbind(occ_value[grep(paste0(y,"]$"),occ_value$X, value=FALSE),],coord_zone,YEAR=(2005+y))
+	occ_coord <- rbind(occ_coord,y1)
+}	
+
+trial_10000 <- sapply(occ_coord$mean,function(x) {rbinom(10000,1,x)},simplify=TRUE)
+
+
+## build spatial points to overlay
+laea.proj <- "+init=epsg:3035"
+wgs84 <- "+init=epsg:4326"
+
+coordinates(occ_coord) <- ~ longitude+latitude
+proj4string(occ_coord) = CRS(laea.proj)
+## occ_coord_wgs84 <- spTransform(occ_coord,CRS=CRS(wgs84))
+
+## build raster across Europe
+full_europe <- raster(extent(2763687,5733766,1605279,5075336),crs=crs(laea.proj))
+res(full_europe) <- 50000
+full_europe[] <- 1:ncell(full_europe)
+
+point_cell <- extract(full_europe,occ_coord)
+
+occ_coord.df <- as.data.frame(occ_coord)
+occ_coord.df$grid_id <- point_cell
+
+length(unique(occ_coord$site))
+trial_y <- array(NA,dim=c(10000,length(unique(occ_coord$site)),length(unique(occ_coord$YEAR))))
+for(y in 1:9){
+trial_y[,,y] <- trial_10000[,which(occ_coord.df$YEAR==y+2005)]
+}
+
+test <- apply(trial_y,c(2,3),function(x) mean(x))
+str(test)
+
+occ_cell <- matrix(NA,nrow=length(unique(point_cell)),ncol=dim(trial_10000)[1])
+
+for (li in 1:dim(trial_10000)[1]){
+	occ_cell[,li] <- as.numeric(by(trial_10000[li,], point_cell, function(x) if(sum(x)==0){0}else{1},simplify=TRUE))
+}
+
+occ_cell <- as.data.frame(occ_cell)
+occ_cell$cell_id <- as.numeric(names(by(trial_10000[li,], point_cell, function(x) if(sum(x)==0){0}else{1},simplify=TRUE)))
+
+rowMeans(occ_cell[,-10001])
+
+
+>>>>>>> 161d12639070da36f97d4810663b3f7480f005a2
 ## on MAC
 load(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jagsoutput2.Rdata"))
-
 ## on PC
 load(paste0("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jagsoutput2.Rdata"))
 
 mean_occ_p <- apply(out2$BUGSoutput$sims.list$z,c(2,3),mean)
+
+
+
 
 prob_at_least_one.in_many <- function (x,trial=20, na.rm = TRUE) {v <- rep(mean(x),trial); v[1:length(x)]<- x; 1-prod(1-v)}
 prob_from_one <- function(x,...) {set.seed(seedset);sample(x,1,replace=TRUE)}
