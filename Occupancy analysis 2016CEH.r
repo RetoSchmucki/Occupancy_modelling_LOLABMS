@@ -40,7 +40,7 @@ species_name <- "Anthocharis_cardamines"
 
 ## on MAC /Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/Audusseau_et_al_revised0303 (002)Reto_edit.docx
 coord_zone <- read.csv(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIcoord_zone.csv"))
-occ_summary <- read.csv(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/Araschnia_levana/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIoutdaytrimmed.csv"))
+occ_summary <- read.csv(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIoutdaytrimmed.csv"))
 
 ## on PC
 coord_zone <- read.csv(paste0("C:/Users/RETOSCHM/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jags_model_1_",species_name,"_ES_FR_UK_NL_DE_FIcoord_zone.csv"))
@@ -114,7 +114,6 @@ graticule_c <- spTransform(graticule_c,CRS=CRS("+init=epsg:3035"))
 full_r <- raster(extent(2763687,5733766,1605279,5075336),crs=crs(laea.proj))
 res(full_r) <- 50000
 col_ramp <- colorRampPalette(c("blue","lightsteelblue3", "yellow", "orange", "red"))(50)
-
 	coordinates(site_coord.spring_summerT) <- ~ longitude+latitude
 	proj4string(site_coord.spring_summerT) = CRS(laea.proj)
 
@@ -134,10 +133,10 @@ plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
 ## add a legend for the color gradient
 plot(var_raster, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,25),axis.args=list(cex.axis=1,tck=-0.5))
 
-<<<<<<< HEAD
-species_name <- "Anthocharis_cardamines"
-species_name <- "Apatura_iris"
-=======
+##### HEAD
+## species_name <- "Anthocharis_cardamines"
+## species_name <- "Apatura_iris"
+##########
 
 ########################################
 ## Estimating distribution of occupancy
@@ -152,7 +151,7 @@ for (y in 1:9){
 	occ_coord <- rbind(occ_coord,y1)
 }	
 
-trial_10000 <- sapply(occ_coord$mean,function(x) {rbinom(10000,1,x)},simplify=TRUE)
+trial_1000 <- sapply(occ_coord$mean,function(x) {rbinom(1000,1,x)},simplify=TRUE)
 
 
 ## build spatial points to overlay
@@ -174,18 +173,114 @@ occ_coord.df <- as.data.frame(occ_coord)
 occ_coord.df$grid_id <- point_cell
 
 length(unique(occ_coord$site))
-trial_y <- array(NA,dim=c(10000,length(unique(occ_coord$site)),length(unique(occ_coord$YEAR))))
+trial_y <- array(NA,dim=c(1000,length(unique(occ_coord$site)),length(unique(occ_coord$YEAR))))
 for(y in 1:9){
-trial_y[,,y] <- trial_10000[,which(occ_coord.df$YEAR==y+2005)]
+trial_y[,,y] <- trial_1000[,which(occ_coord.df$YEAR==y+2005)]
 }
+
+## shift estimate
+full_europe[] <- NA
+
+## For year 2006-2014
+M_y <- matrix(NA,nrow=1000,ncol=9)
+SD_y <- matrix(NA,nrow=1000,ncol=9)
+q25_y <- matrix(NA,nrow=1000,ncol=9)
+q75_y <- matrix(NA,nrow=1000,ncol=9)
+
+for (y in 1:9){
+per_gricell_obs <- as.data.frame(apply(trial_y[,,y],1,function(x) by(x,point_cell[1:dim(trial_y)[2]],FUN=sum)))
+per_gricell_obs[per_gricell_obs>0] <- 1
+
+M_ <- c()
+SD_ <- c()
+q25_ <- c()
+q75_ <- c()
+for (it in 1:dim(per_gricell_obs)[2]){
+	full_europe[as.numeric(rownames(per_gricell_obs))] <- per_gricell_obs[,it]
+	t.df <- as.data.frame(rasterToPoints(full_europe))
+	M_[it] <- mean(t.df$y[t.df$layer==1]/1000)
+	SD_[it] <- sd(t.df$y[t.df$layer==1]/1000)
+	q25_[it] <- quantile(t.df$y[t.df$layer==1]/1000,0.25)
+	q75_[it] <- quantile(t.df$y[t.df$layer==1]/1000,0.75)
+}
+
+M_y[,y] <- M_
+SD_y[,y] <- SD_
+q25_y[,y] <- q25_
+q75_y[,y] <- q75_
+}
+
+a <- cbind(c(M_y),rep(1:9,rep(1000,9)))
+boxplot(a[,1]~a[,2])
+lm(a[,1]~a[,2])
+
+a25 <- cbind(c(q25_y),rep(1:9,rep(1000,9)))
+boxplot(a25[,1]~a25[,2])
+lm(a25[,1]~a25[,2])
+
+a75 <- cbind(c(q75_y),rep(1:9,rep(1000,9)))
+boxplot(a75[,1]~a75[,2])
+summary(lm(a75[,1]~a75[,2]))
+
+b <- cbind(c(SD_y),rep(1:9,rep(1000,9)))
+boxplot(b[,1]~b[,2])
+lm(b[,1]~b[,2])
+
+## MAP distribution
+it=1
+for (it in 1:100){
+full_europe[] <- NA
+full_europe[as.numeric(rownames(per_gricell_obs))] <- per_gricell_obs[,it]
+
+col_ramp <- colorRampPalette(c('orange',"green"))(2)
+
+image(full_europe,axes=T,col=col_ramp,zlim=c(0,1))
+plot(country_p_c[country_p_c@data$sovereignt%in% c("Italy","Switzerland","Belgium","Luxembourg","Russia","Denmark","Austria","Poland","Czech Republic","Estonia","Ireland"),],col="white",border=NA,add=T)
+plot(country_c,lwd=0.3,add=T)
+polygon(c(5352923,5352923,5809489,5809489,5352923),c(2024942,3548678,3548678,2024942,2024942),col="white",border=NA)
+plot(ocean_c,col="lightsteelblue1",add=T)
+plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
+## add a legend for the color gradient
+plot(full_europe, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,1),axis.args=list(cex.axis=1,tck=-0.5))
+}
+
+## Compute and map uncertainty (sd)
+str(per_gricell_obs)
+t <- rowMeans(per_gricell_obs)
+sd_prob <- sqrt(t*(1-t))
+
+full_europe[as.numeric(rownames(per_gricell_obs))] <- sd_prob
+
+col_ramp <- colorRampPalette(c("blue","lightsteelblue3", "yellow", "orange", "red"))(25)
+
+image(full_europe,axes=T,col=col_ramp,zlim=c(0,0.5))
+plot(country_p_c[country_p_c@data$sovereignt%in% c("Italy","Switzerland","Belgium","Luxembourg","Russia","Denmark","Austria","Poland","Czech Republic","Estonia","Ireland"),],col="white",border=NA,add=T)
+plot(country_c,lwd=0.3,add=T)
+polygon(c(5352923,5352923,5809489,5809489,5352923),c(2024942,3548678,3548678,2024942,2024942),col="white",border=NA)
+plot(ocean_c,col="lightsteelblue1",add=T)
+plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
+## add a legend for the color gradient
+plot(full_europe, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,0.5),axis.args=list(cex.axis=1,tck=-0.5))
+
+
+## shift estimate
+
+
+coord.df <- occ_coord.df[occ_coord.df$YEAR==2006,c("site","latitude","longitude","grid_id")]
+
+
+t <- data.frame(grid_id=as.numeric(rownames(per_gricell_obs)),occurrence=per_gricell_obs[,1])
+t <- merge(coord.df,t,by=c("grid_id"))
+
+
 
 test <- apply(trial_y,c(2,3),function(x) mean(x))
 str(test)
 
-occ_cell <- matrix(NA,nrow=length(unique(point_cell)),ncol=dim(trial_10000)[1])
+occ_cell <- matrix(NA,nrow=length(unique(point_cell)),ncol=dim(trial_1000)[1])
 
-for (li in 1:dim(trial_10000)[1]){
-	occ_cell[,li] <- as.numeric(by(trial_10000[li,], point_cell, function(x) if(sum(x)==0){0}else{1},simplify=TRUE))
+for (li in 1:dim(trial_1000)[1]){
+	occ_cell[,li] <- as.numeric(by(trial_1000[li,], point_cell, function(x) if(sum(x)==0){0}else{1},simplify=TRUE))
 }
 
 occ_cell <- as.data.frame(occ_cell)
@@ -194,7 +289,6 @@ occ_cell$cell_id <- as.numeric(names(by(trial_10000[li,], point_cell, function(x
 rowMeans(occ_cell[,-10001])
 
 
->>>>>>> 161d12639070da36f97d4810663b3f7480f005a2
 ## on MAC
 load(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jagsoutput2.Rdata"))
 ## on PC
