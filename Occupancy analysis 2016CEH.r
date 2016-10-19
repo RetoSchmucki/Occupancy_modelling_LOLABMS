@@ -126,6 +126,7 @@ plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
 plot(var_raster, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(0,25),axis.args=list(cex.axis=1,tck=-0.5))
 
 species_name <- "Anthocharis_cardamines"
+species_name <- "Apatura_iris"
 ## on MAC
 load(paste0("/Users/retoschmucki/CEH-OneDriveBusiness/OneDrive - Natural Environment Research Council/LOLA_BMS/estimate_all_AUGUST/countries_UNI_2006_sd_67/",species_name,"/results/jagsoutput2.Rdata"))
 
@@ -139,7 +140,7 @@ prob_from_one <- function(x,...) {set.seed(seedset);sample(x,1,replace=TRUE)}
 
 ## PER YEAR
 nbr_it <- 10000
-shift.array <- array(data=NA, dim=c(2,3,nbr_it))
+shift.array <- array(data=NA, dim=c(2,5,nbr_it))
 
 for (z in 1:nbr_it){
 
@@ -166,13 +167,14 @@ y.range <- rbind(y.range,range(d$y))
 x.range <- rbind(x.range,range(d$x))
 density.curves[[y]] <- d
 
-quantile.value <-  rbind(quantile.value,as.numeric(quantile(rep(as.numeric(as.character(merged.northing$id)),merged.northing$stdr_effort),c(0.1,0.5,0.90))))
+quantile.value <-  rbind(quantile.value,as.numeric(quantile(rep(as.numeric(as.character(merged.northing$id)),merged.northing$stdr_effort),c(0.1,0.25,0.5,0.75,0.90))))
 
 }
 
 quantile.value$Year <- 1:dim(quantile.value)[1]
-names(quantile.value) <- c("p25","p50","p75","Year")
-shift.array[,,z] <- matrix(c(as.numeric(coefficients( glm(p25~Year, data = quantile.value))),as.numeric(coefficients( glm(p50~Year, data = quantile.value))),as.numeric(coefficients( glm(p75~Year, data = quantile.value)))),nrow=2,ncol=3)
+names(quantile.value) <- c("p10","p25","p50","p75","p90","Year")
+shift.array[,,z] <- matrix(c(as.numeric(coefficients( glm(p10~Year, data = quantile.value))),as.numeric(coefficients( glm(p25~Year, data = quantile.value))),as.numeric(coefficients( glm(p50~Year, data = quantile.value))),
+	as.numeric(coefficients( glm(p75~Year, data = quantile.value))),as.numeric(coefficients( glm(p90~Year, data = quantile.value)))),nrow=2,ncol=5)
 
 }
 
