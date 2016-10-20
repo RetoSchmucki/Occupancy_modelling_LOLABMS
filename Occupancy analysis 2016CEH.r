@@ -146,8 +146,8 @@ plot(var_raster, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TR
 occ_value <- occ_summary[substr(occ_summary$X,1,2)=="z[",]
 
 occ_coord <- data.frame()
-for (y in 1:9){
-	y1 <-cbind(occ_value[grep(paste0(y,"]$"),occ_value$X, value=FALSE),],coord_zone,YEAR=(2005+y))
+for (y in 1:length(unique(occ_coord$YEAR))){
+	y1 <-cbind(occ_value[grep(paste0(y,"]$"),occ_value$X, value=FALSE),],coord_zone,YEAR=(min(unique(occ_coord$YEAR))-1+y))
 	occ_coord <- rbind(occ_coord,y1)
 }	
 
