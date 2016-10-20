@@ -25,39 +25,47 @@ if(Sys.info()[4]=="WLD-3VHP992"){
 	country_p <- readOGR(".","ne_50m_admin_0_sovereignty")	
 }
 
+setwd("/Users/retoschmucki/")
+
 ## GET climate data
 climate_data <- extract_nc_value(2006,2014,local_file=FALSE,clim_variable='mean temp',grid_size=0.25)
 monthly_mean <- temporal_mean(climate_data,"monthly")
 
 s_m <- seq(from=4,to=(9*12),by=12)
 e_m <- seq(from=9,to=(9*12),by=12)
-A_S <- array(NA,dim=c(dim(spring_summer_values)[1],dim(spring_summer_values)[2],9))
+A_S <- array(NA,dim=c(dim(monthly_mean$value_array)[1],dim(monthly_mean$value_array)[2],9))
 for (y in 1:9){
 A <- monthly_mean$value_array[,,s_m[y]:e_m[y]]
 A_S[,,y] <- apply(A,c(1,2),mean)
 }
-image(A_S[,,2])
 
-sp.points <- expand.grid(monthly_mean$longitude,monthly_mean$latitude)
-names(sp.points) <- c("longitude","latitude")
-coordinates(sp.points) <- ~ longitude+latitude
-proj4string(sp.points) <- CRS("+init=epsg:4326")
-plot(sp.points,add=TRUE)
-gridded(sp.points) <- TRUE
-sp.points <- raster(sp.points)
+str((A_S[,,2]))
+
+
+## sp.points <- expand.grid(monthly_mean$longitude,monthly_mean$latitude)
+## names(sp.points) <- c("longitude","latitude")
+## coordinates(sp.points) <- ~ longitude+latitude
+## proj4string(sp.points) <- CRS("+init=epsg:4326")
+## plot(sp.points,add=TRUE)
+## gridded(sp.points) <- TRUE
+
+sp.points <- raster("tg_0.25deg_reg_v14.0.nc")
 sp.points[] <-apply(t(A_S[,,9]),2, rev) 
 
+image(sp.points,add=TRUE)
 ## Calculate region summer mean temperature change
 
+monthly_mean$latitude
+
+n_Tchange <- A_S[,,9] 
+n_Tchange[] <- NA 
 y_temp <- data.frame()
 for(y in c(1:9)){
 y_temp <- rbind(y_temp,data.frame(temp=c(A_S[,176:201,y]),year=y))
 }
-summary(lm(y_temp$temp~jitter(y_temp$y)))
-n_Tchange[,c(176:201)] <- as.numeric(coefficients(lm(y_temp$temp~jitter(y_temp$y)))[2])
+summary(lm(y_temp$temp~y_temp$y))
+n_Tchange[,c(176:201)] <- as.numeric(coefficients(lm(y_temp$temp~y_temp$y))[2])
 
-n_Tchange <- A_S[,,9] 
-n_Tchange[] <- NA 
 y_temp <- data.frame()
 for(y in c(1:9)){
 y_temp <- rbind(y_temp,data.frame(temp=c(A_S[,151:175,y]),year=y))
@@ -99,7 +107,6 @@ y_temp <- rbind(y_temp,data.frame(temp=c(A_S[,26:50,y]),year=y))
 }
 summary(lm(y_temp$temp~jitter(y_temp$y)))
 n_Tchange[,c(26:50)] <- as.numeric(coefficients(lm(y_temp$temp~jitter(y_temp$y)))[2])
-sp.points[] <-apply(t(n_Tchange),2, rev) 
 
 y_temp <- data.frame()
 for(y in c(1:9)){
@@ -119,16 +126,16 @@ ocean_c <- crop(ocean, CP, byid=TRUE)
 graticule_c <- crop(graticule,ocean_c,byid=TRUE)
 sp.points_c <- crop(sp.points, CP)
 
-col_ramp <- colorRampPalette(c("lightblue3","yellow","orange","red"))(50)
-image(sp.points,add=TRUE)
-image(sp.points_c,axes=T,col=col_ramp,zlim=c(-0.1,0.2))
+col_ramp <- colorRampPalette(c("yellow","red"))(12)
+pdf("temp_trend.pdf")
+image(sp.points,axes=F,col=col_ramp,zlim=c(-0.1,0.25))
 plot(country_c,lwd=0.3,add=T)
-polygon(c(5352923,5352923,5809489,5809489,5352923),c(2024942,3548678,3548678,2024942,2024942),col="white",border=NA)
 plot(ocean_c,col="lightsteelblue1",add=T)
 plot(graticule_c, col="gray15",lty=2,lwd=0.5,add=T)
-plot(sp.points_c, smallplot=c(0.85, 0.88, 0.17, .55),col=col_ramp, legend.only=TRUE,zlim=c(-0.1,0.2),axis.args=list(cex.axis=1,tck=-0.5))
+polygon(c(45,45,70,70,45),c(25,80,80,25,25),col="white",border=NA)
+plot(sp.points_c, smallplot=c(0.74, 0.76, 0.25, .65),col=col_ramp, legend.only=TRUE,zlim=c(-0.1,0.2),axis.args=list(cex.axis=1,tck=-0.5))
 
-
+dev.off()
 
 
 
