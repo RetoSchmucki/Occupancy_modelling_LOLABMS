@@ -39,23 +39,10 @@ A <- monthly_mean$value_array[,,s_m[y]:e_m[y]]
 A_S[,,y] <- apply(A,c(1,2),mean)
 }
 
-str((A_S[,,2]))
-
-
-## sp.points <- expand.grid(monthly_mean$longitude,monthly_mean$latitude)
-## names(sp.points) <- c("longitude","latitude")
-## coordinates(sp.points) <- ~ longitude+latitude
-## proj4string(sp.points) <- CRS("+init=epsg:4326")
-## plot(sp.points,add=TRUE)
-## gridded(sp.points) <- TRUE
-
 sp.points <- raster("tg_0.25deg_reg_v14.0.nc")
 sp.points[] <-apply(t(A_S[,,9]),2, rev) 
 
-image(sp.points,add=TRUE)
 ## Calculate region summer mean temperature change
-
-monthly_mean$latitude
 
 n_Tchange <- A_S[,,9] 
 n_Tchange[] <- NA 
